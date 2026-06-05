@@ -1,18 +1,33 @@
 
-# Bamboo Garden Trimming Simulator 🎋
+# Bamboo Garden Trimming Simulator
 
-An interactive, web-based simulator for the Bamboo Garden Trimming (BGT) problem, demonstrating algorithms like Reduce-Max and Reduce-Fastest(x). Based on the research paper *"Cutting bamboo down to size"* by Bilò et al. (Theoretical Computer Science, 2022).
+Interaktywny symulator problemu Bamboo Garden Trimming (BGT), przepisany z React/Vite na aplikacje Python/Streamlit.
 
-## Features
-* **Sandbox Mode:** Experiment with custom growth rates and manually step through different cutting algorithms.
-* **Compare Mode:** Run multiple algorithms (Reduce-Max, Reduce-Fastest, Makespan-2 Oracle) side-by-side to see which maintains the lowest makespan.
-* **Game Mode:** Play against the Reduce-Max bot. You get one cut per day—can you keep your garden's makespan lower than the algorithm?
+## Funkcje
 
-## Tech Stack
-* React 18
-* Vite
-* Native SVG for fast, lightweight rendering (No external charting libraries)
+* **Sandbox Mode:** eksperymentowanie z wlasnymi tempami wzrostu i algorytmami ciecia.
+* **Compare Mode:** porownanie Reduce-Max, Reduce-Fastest(x) oraz Makespan-2 oracle na tym samym ogrodzie.
+* **Game Mode:** gra przeciwko botowi Reduce-Max, z jednym cieciem na dzien.
 
-## Local Development
+## Tech stack
 
-To run this project locally on your machine:
+* Python
+* Streamlit
+* SVG generowane po stronie Pythona
+
+## Uruchomienie lokalne
+
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+streamlit run app.py
+```
+
+Aplikacja bedzie dostepna pod adresem pokazanym przez Streamlit, zwykle `http://localhost:8501`.
+
+## Testy
+
+```bash
+python -m unittest
+```
