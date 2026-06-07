@@ -1,0 +1,739 @@
+% ============================================================
+%  Prezentacja Beamer: Bamboo Garden Trimming
+%  Gry Kombinatoryczne, Politechnika Warszawska
+% ============================================================
+\documentclass[aspectratio=169,10pt]{beamer}
+
+% --- Fonty i jezyk ----------------------------------------------------
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{lmodern}
+\else
+  \usepackage{fontspec}
+  \setsansfont{lmsans10-regular.otf}[
+    BoldFont = lmsans10-bold.otf,
+    ItalicFont = lmsans10-oblique.otf,
+    BoldItalicFont = lmsans10-boldoblique.otf
+  ]
+  \setmonofont{lmmono10-regular.otf}
+\fi
+\usepackage[polish]{babel}
+
+% --- Pakiety ----------------------------------------------------------
+\usepackage{amsmath, amssymb}
+\usepackage{tikz}
+\usetikzlibrary{
+  arrows.meta,
+  calc,
+  decorations.pathreplacing,
+  positioning,
+  shapes.geometric
+}
+\usepackage{xcolor}
+
+% --- Paleta -----------------------------------------------------------
+\definecolor{ink}{HTML}{0E2638}
+\definecolor{subtle}{HTML}{5F6F7C}
+\definecolor{mist}{HTML}{F5F7F9}
+\definecolor{grid}{HTML}{DAE3EA}
+\definecolor{green}{HTML}{26884A}
+\definecolor{leaf}{HTML}{CFEED9}
+\definecolor{amber}{HTML}{D8841C}
+\definecolor{sun}{HTML}{FFE6B8}
+\definecolor{blue}{HTML}{3267E3}
+\definecolor{sky}{HTML}{DDE8FF}
+\definecolor{red}{HTML}{D64A3A}
+\definecolor{rose}{HTML}{FFE0DE}
+
+% --- Beamer -----------------------------------------------------------
+\usetheme{default}
+\setbeamersize{text margin left=0.58cm,text margin right=0.58cm}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}{\tikz\fill[green] (0,0) circle (1.8pt);}
+\setbeamercolor{normal text}{fg=ink,bg=white}
+\setbeamercolor{frametitle}{fg=ink,bg=white}
+\setbeamerfont{frametitle}{series=\bfseries,size=\Large}
+\setbeamerfont{title}{series=\bfseries,size=\LARGE}
+\setbeamerfont{subtitle}{size=\large}
+
+\setbeamertemplate{frametitle}{%
+  \vspace{0.22cm}
+  \insertframetitle\par
+  \vspace{0.09cm}
+  {\color{grid}\rule{\textwidth}{0.7pt}}
+}
+
+\setbeamertemplate{footline}{%
+  \begin{tikzpicture}[remember picture,overlay]
+    \node[anchor=south west, text=subtle, font=\scriptsize]
+      at ([xshift=0.56cm,yshift=0.13cm]current page.south west)
+      {Bamboo Garden Trimming};
+    \node[anchor=south east, text=subtle, font=\scriptsize]
+      at ([xshift=-0.56cm,yshift=0.13cm]current page.south east)
+      {\insertframenumber/\inserttotalframenumber};
+  \end{tikzpicture}
+}
+
+% --- Makra ------------------------------------------------------------
+\newcommand{\RM}{\textsc{Reduce-Max}}
+\newcommand{\RF}{\textsc{Reduce-Fastest}}
+\newcommand{\M}{\mathcal{M}}
+\newcommand{\mutednote}[1]{{\footnotesize\color{subtle}#1}}
+\newcommand{\chip}[3]{%
+  \tikz[baseline=(x.base)]\node[
+    rounded corners=4pt,
+    fill=#1,
+    draw=#2,
+    inner xsep=7pt,
+    inner ysep=3pt,
+    font=\scriptsize\bfseries
+  ] (x) {#3};%
+}
+\newcommand{\callout}[4]{%
+  \node[
+    rounded corners=6pt,
+    fill=#1,
+    draw=#2,
+    line width=0.7pt,
+    text width=#3,
+    align=left,
+    inner sep=8pt
+  ] {#4};
+}
+\newcommand{\bamboo}[5]{%
+  \draw[#4, line width=#5] (#1,0) -- (#1,#2);
+  \foreach \t in {0.18,0.36,0.54,0.72,0.90} {
+    \pgfmathsetmacro{\yy}{#2*\t}
+    \draw[#4!75, line width=0.7pt] (#1,\yy) -- ++(0.12,0.06);
+  }
+  \node[font=\scriptsize, text=ink] at (#1,-0.24) {$b_#3$};
+}
+
+\title{Bamboo Garden Trimming}
+\subtitle{Jak utrzymać wiecznie rosnący ogród pod kontrolą?}
+\author{Michał Bober \quad Piotr Komisarczyk \quad Igor Staręga}
+\institute{Gry Kombinatoryczne -- Politechnika Warszawska}
+\date{\today}
+
+\begin{document}
+
+% ----------------------------------------------------------------------
+\begin{frame}[plain]
+  \begin{tikzpicture}[remember picture,overlay]
+    \fill[sky!50] (current page.north east) rectangle
+      ([xshift=-5.2cm,yshift=-7.2cm]current page.north east);
+    \draw[blue, line width=1.2pt]
+      ([xshift=-5.0cm,yshift=-1.15cm]current page.north east) --
+      ([xshift=-0.7cm,yshift=-1.15cm]current page.north east);
+    \node[text=blue, font=\scriptsize] at
+      ([xshift=-3.35cm,yshift=-0.85cm]current page.north east)
+      {widok na jezioro};
+  \end{tikzpicture}
+
+  \vspace{0.62cm}
+  {\usebeamerfont{title}\color{ink}\inserttitle\par}
+  \vspace{0.18cm}
+  {\usebeamerfont{subtitle}\color{subtle}\insertsubtitle\par}
+  \vspace{0.50cm}
+  {\small\insertauthor\par}
+  \vspace{0.08cm}
+  {\small\color{subtle}\insertinstitute\par}
+
+  \vspace{0.46cm}
+  \begin{tikzpicture}
+    \callout{leaf}{green}{6.1cm}{%
+      \textbf{Cel projektu:} przełożyć wyniki teoretyczne o BGT na czytelny
+      model, porównanie algorytmów i działającą symulację w Pythonie.}
+  \end{tikzpicture}
+
+  \begin{tikzpicture}[remember picture,overlay,scale=1.02]
+    \begin{scope}[shift={([xshift=-4.75cm,yshift=-6.55cm]current page.north east)}]
+      \fill[white, opacity=0.74, rounded corners=7pt] (-0.3,-0.35) rectangle (4.45,4.0);
+      \draw[grid, rounded corners=7pt] (-0.3,-0.35) rectangle (4.45,4.0);
+      \bamboo{0.35}{1.45}{1}{green}{2.3pt}
+      \bamboo{1.25}{2.65}{2}{amber}{2.3pt}
+      \bamboo{2.15}{2.05}{3}{green}{2.3pt}
+      \bamboo{3.25}{3.55}{4}{red}{2.7pt}
+      \draw[red, dashed, line width=1pt] (0.02,3.55) -- (3.75,3.55);
+      \node[rounded corners=4pt, fill=white, draw=red, font=\scriptsize,
+        inner sep=4pt] at (3.15,1.30) {cięcie};
+      \draw[-{Stealth[length=2.2mm]}, red, line width=1pt]
+        (3.15,1.52) -- (3.25,3.13);
+    \end{scope}
+  \end{tikzpicture}
+\end{frame}
+
+% ----------------------------------------------------------------------
+\begin{frame}{Problem w jednym obrazku}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.44\textwidth}
+      \vspace{0.18cm}
+      \begin{tikzpicture}
+        \callout{mist}{grid}{5.1cm}{%
+          \textbf{Każdy dzień ma dwa kroki:}\\[0.25em]
+          1. wszystkie bambusy rosną,\\
+          2. robot może skosić jeden z nich.}
+      \end{tikzpicture}
+
+      \vspace{0.55cm}
+      \chip{leaf}{green}{współczynniki wzrostu}
+      \hspace{0.25cm}
+      \chip{sun}{amber}{decyzje online}
+
+      \vspace{0.26cm}
+      \chip{sky}{blue}{harmonogram wieczysty}
+    \end{column}
+
+    \begin{column}{0.54\textwidth}
+      \centering
+      \begin{tikzpicture}[x=1.05cm,y=0.75cm]
+        \draw[->, subtle] (0,0) -- (6.4,0) node[right,font=\scriptsize] {dzień};
+        \draw[->, subtle] (0,0) -- (0,4.1) node[above,font=\scriptsize] {wysokość};
+        \draw[green, line width=1.7pt]
+          (0,0) -- (1,0.75) -- (1,0) -- (2,0.75) -- (2,0)
+          -- (3,0.75) -- (4,1.50) -- (4,0) -- (5,0.75) -- (6,1.50);
+        \draw[amber, line width=1.7pt]
+          (0,0) -- (3,1.35) -- (3,0) -- (6,1.35);
+        \draw[blue, line width=1.7pt]
+          (0,0) -- (6,0.95);
+        \draw[red, dashed, line width=1pt] (0,1.50) -- (6.1,1.50)
+          node[right,font=\scriptsize] {makespan};
+        \foreach \x in {1,2,3,4,5,6}
+          \draw[subtle] (\x,0.06) -- (\x,-0.06) node[below,font=\scriptsize] {\x};
+        \node[green, font=\scriptsize] at (5.8,1.78) {$b_1$};
+        \node[amber, font=\scriptsize] at (5.7,1.05) {$b_2$};
+        \node[blue, font=\scriptsize] at (5.7,0.58) {$b_3$};
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ----------------------------------------------------------------------
+\begin{frame}{Model formalny}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.48\textwidth}
+      \begin{tikzpicture}
+        \callout{leaf}{green}{5.5cm}{%
+          \textbf{Instancja:} $n$ bambusów z szybkościami
+          $h_1,\ldots,h_n>0$. Normalizujemy:
+          \[
+            \sum_{i=1}^n h_i=1.
+          \]}
+      \end{tikzpicture}
+
+      \vspace{0.32cm}
+      \begin{tikzpicture}
+        \callout{sky}{blue}{5.5cm}{%
+          \textbf{Wysokość przed cięciem:}
+          \[
+            H_i(d)=(d-d')h_i.
+          \]
+          $d'$ to ostatni dzień cięcia bambusa $b_i$.}
+      \end{tikzpicture}
+    \end{column}
+
+    \begin{column}{0.48\textwidth}
+      \centering
+      \begin{tikzpicture}[
+        flowstep/.style={rounded corners=7pt, draw, minimum width=3.7cm,
+          minimum height=0.78cm, align=center, font=\small, fill=white},
+        arr/.style={-{Stealth[length=2.3mm]}, thick}
+      ]
+        \node[flowstep, draw=green, fill=leaf] (grow) {wzrost\\[-1pt]\scriptsize $H_i\leftarrow H_i+h_i$};
+        \node[flowstep, draw=amber, fill=sun, below=0.35cm of grow] (choose)
+          {wybór\\[-1pt]\scriptsize który bambus skosić?};
+        \node[flowstep, draw=red, fill=rose, below=0.35cm of choose] (cut)
+          {cięcie\\[-1pt]\scriptsize $H_j\leftarrow 0$};
+        \node[flowstep, draw=blue, fill=sky, below=0.35cm of cut] (next)
+          {następny dzień};
+        \draw[arr, green] (grow) -- (choose);
+        \draw[arr, amber] (choose) -- (cut);
+        \draw[arr, red] (cut) -- (next);
+        \draw[arr, blue] (next.east) .. controls +(1.2,0) and +(1.2,0) .. (grow.east);
+      \end{tikzpicture}
+
+      \vspace{0.38cm}
+      \begin{tikzpicture}
+        \callout{mist}{grid}{5.1cm}{%
+          \centering
+          \textbf{Minimalizujemy}
+          \[
+            \M=\max_{i,d} H_i(d).
+          \]}
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ----------------------------------------------------------------------
+\begin{frame}{Granice: optimum jest blisko 2}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.31\textwidth}
+      \begin{tikzpicture}
+        \callout{leaf}{green}{3.35cm}{%
+          \textbf{Dolna granica}\\[0.25em]
+          $\M\geq 1$\\
+          \mutednote{ogród rośnie łącznie o 1 dziennie}}
+      \end{tikzpicture}
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \begin{tikzpicture}
+        \callout{rose}{red}{3.35cm}{%
+          \textbf{Prawie 2 bywa konieczne}\\[0.25em]
+          $h_1=1-\varepsilon$, $h_2=\varepsilon$}
+      \end{tikzpicture}
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \begin{tikzpicture}
+        \callout{sky}{blue}{3.35cm}{%
+          \textbf{2 zawsze wystarcza}\\[0.25em]
+          przez redukcję do Pinwheel Scheduling}
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.65cm}
+  \centering
+  \begin{tikzpicture}[x=1.15cm,y=0.82cm]
+    \draw[->, subtle] (0,0) -- (8.7,0) node[right,font=\scriptsize] {makespan};
+    \draw[line width=4pt, green] (1.0,0) -- (6.25,0);
+    \draw[line width=4pt, blue] (6.25,0) -- (6.75,0);
+    \foreach \x/\txt/\col in {1.0/$1$/green,6.25/$2-\varepsilon$/red,6.75/$2$/blue}
+      \draw[\col, line width=1.2pt] (\x,0.14) -- (\x,-0.14)
+        node[below,font=\small] {\txt};
+    \node[font=\small, text=amber, align=center] at (3.95,0.65)
+      {tu mierzymy jakość\\konkretnych strategii};
+    \draw[-{Stealth[length=2.3mm]}, amber, thick] (3.95,0.42) -- (4.55,0.07);
+  \end{tikzpicture}
+\end{frame}
+
+% ----------------------------------------------------------------------
+\begin{frame}{Algorytm 1: \RM}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.40\textwidth}
+      \vspace{0.20cm}
+      \begin{tikzpicture}
+        \callout{leaf}{green}{4.55cm}{%
+          \textbf{Reguła:}\\[0.25em]
+          każdego dnia skosimy bambus o największej aktualnej wysokości:
+          \[
+            j=\arg\max_i H_i(d).
+          \]}
+      \end{tikzpicture}
+
+      \vspace{0.35cm}
+      \begin{tikzpicture}
+        \callout{sun}{amber}{4.55cm}{%
+          \textbf{Wynik teoretyczny:}
+          \[
+            \RM\quad\Rightarrow\quad \M\leq 9.
+          \]
+          \mutednote{Hipoteza eksperymentalna: granica $2$.}}
+      \end{tikzpicture}
+    \end{column}
+
+    \begin{column}{0.56\textwidth}
+      \centering
+      \begin{tikzpicture}[x=1cm,y=0.82cm]
+        \fill[mist, rounded corners=8pt] (-0.25,-0.55) rectangle (6.55,4.45);
+        \draw[grid, rounded corners=8pt] (-0.25,-0.55) rectangle (6.55,4.45);
+        \draw[subtle] (0,0) -- (6.0,0);
+        \bamboo{0.75}{1.45}{1}{green}{2.3pt}
+        \bamboo{2.05}{3.15}{2}{amber}{2.6pt}
+        \bamboo{3.35}{2.20}{3}{green}{2.3pt}
+        \bamboo{4.65}{3.95}{4}{red}{2.8pt}
+        \draw[red, dashed, line width=1pt] (0.25,3.95) -- (5.55,3.95);
+        \node[red, font=\scriptsize] at (5.64,4.17) {max};
+        \node[rounded corners=4pt, fill=white, draw=red, font=\small,
+          inner sep=5pt] at (5.55,1.75) {wybierz $b_4$};
+        \draw[-{Stealth[length=2.5mm]}, red, line width=1.1pt]
+          (5.35,1.95) -- (4.70,3.60);
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ----------------------------------------------------------------------
+\begin{frame}{Wizualizacja \RM: co dzieje się w czasie?}
+  \centering
+  \begin{tikzpicture}[x=1.18cm,y=0.63cm]
+    \draw[->, subtle] (0,0) -- (9.2,0) node[right,font=\scriptsize] {dzień};
+    \draw[->, subtle] (0,0) -- (0,5.3) node[above,font=\scriptsize] {wysokość};
+    \foreach \y in {1,2,3,4}
+      \draw[grid] (0,\y) -- (8.8,\y) node[left=0.05cm,font=\scriptsize,text=subtle] {\y};
+
+    \draw[green, line width=1.7pt]
+      (0,0) -- (1,0.70) -- (1,0) -- (2,0.70) -- (2,0)
+      -- (3,0.70) -- (3,0) -- (4,0.70) -- (5,1.40)
+      -- (5,0) -- (6,0.70) -- (7,1.40) -- (7,0) -- (8,0.70);
+    \draw[amber, line width=1.7pt]
+      (0,0) -- (4,1.00) -- (4,0) -- (8,1.00);
+    \draw[blue, line width=1.7pt]
+      (0,0) -- (8,0.80);
+    \draw[red, dashed, line width=1pt] (0,1.40) -- (8.5,1.40)
+      node[right,font=\scriptsize] {osiągnięty makespan};
+
+    \foreach \x/\lab in {1/$b_1$,2/$b_1$,3/$b_1$,4/$b_2$,5/$b_1$,7/$b_1$} {
+      \draw[red!65, line width=0.6pt] (\x,0) -- (\x,-0.34);
+      \node[font=\scriptsize, text=red] at (\x,-0.58) {\lab};
+    }
+    \node[green, font=\scriptsize] at (8.35,0.72) {$b_1$};
+    \node[amber, font=\scriptsize] at (8.35,1.02) {$b_2$};
+    \node[blue, font=\scriptsize] at (8.35,0.48) {$b_3$};
+  \end{tikzpicture}
+
+  \vspace{0.35cm}
+  \mutednote{Czerwone podpisy pod osią pokazują, który bambus został skoszony danego dnia.}
+\end{frame}
+
+% ----------------------------------------------------------------------
+\begin{frame}{Algorytm 2: \RF$(x)$}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.42\textwidth}
+      \begin{tikzpicture}
+        \callout{sky}{blue}{4.8cm}{%
+          \textbf{Reguła:}\\[0.25em]
+          patrzymy tylko na bambusy, które przekroczyły próg $x$, a potem
+          wybieramy najszybciej rosnący:
+          \[
+            j=\arg\max_{i:\ H_i(d)\geq x} h_i.
+          \]}
+      \end{tikzpicture}
+
+      \vspace{0.35cm}
+      \begin{tikzpicture}
+        \callout{leaf}{green}{4.8cm}{%
+          \textbf{Najlepszy próg z analizy:}
+          \[
+            x=1+\frac1{\sqrt5},
+            \qquad
+            \M\leq\frac{3+\sqrt5}{2}\approx2{,}618.
+          \]}
+      \end{tikzpicture}
+    \end{column}
+
+    \begin{column}{0.54\textwidth}
+      \centering
+      \begin{tikzpicture}[x=1.05cm,y=0.78cm]
+        \draw[->, subtle] (0,0) -- (6.5,0) node[right,font=\scriptsize] {czas};
+        \draw[->, subtle] (0,0) -- (0,4.4) node[above,font=\scriptsize] {wysokość};
+        \draw[blue, dashed, line width=1.1pt] (0,2.05) -- (6.1,2.05)
+          node[right,font=\scriptsize] {$x$};
+
+        \draw[red, line width=1.8pt] (0,0) -- (1.05,2.05) -- (1.05,0);
+        \draw[amber, line width=1.8pt] (0,0) -- (1.55,2.05) -- (1.55,0);
+        \draw[green, line width=1.8pt] (0,0) -- (3.20,2.05) -- (3.20,0);
+
+        \node[red, font=\scriptsize] at (1.05,-0.32) {szybki};
+        \node[amber, font=\scriptsize] at (1.55,-0.62) {średni};
+        \node[green, font=\scriptsize] at (3.20,-0.32) {wolny};
+
+        \node[rounded corners=5pt, fill=white, draw=blue, text width=3.0cm,
+          align=center, font=\scriptsize, inner sep=5pt] at (4.55,3.30)
+          {po przekroczeniu progu\\wygrywa największe $h_i$};
+        \draw[-{Stealth[length=2.2mm]}, blue, thick] (4.10,2.90) -- (1.12,2.10);
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ----------------------------------------------------------------------
+\begin{frame}{Porównanie strategii bez ściany tabeli}
+  \centering
+  \begin{tikzpicture}[x=1cm,y=1cm]
+    \node[rounded corners=7pt, fill=leaf, draw=green, text width=3.25cm,
+      inner sep=8pt, align=left] at (0,0)
+      {\textbf{\RM}\\[0.2em]
+       \Large $\M\leq9$\\[-0.1em]
+       \mutednote{najwyższy bambus}};
+
+    \node[rounded corners=7pt, fill=sky, draw=blue, text width=3.25cm,
+      inner sep=8pt, align=left] at (4.0,0)
+      {\textbf{\RF$(x)$}\\[0.2em]
+       \Large $\M\leq2{,}62$\\[-0.1em]
+       \mutednote{próg + tempo wzrostu}};
+
+    \node[rounded corners=7pt, fill=sun, draw=amber, text width=3.25cm,
+      inner sep=8pt, align=left] at (8.0,0)
+      {\textbf{Oracle 2}\\[0.2em]
+       \Large $\M\leq2$\\[-0.1em]
+       \mutednote{redukcja Pinwheel}};
+
+    \draw[-{Stealth[length=2.4mm]}, thick, subtle] (1.85,0) -- (2.15,0);
+    \draw[-{Stealth[length=2.4mm]}, thick, subtle] (5.85,0) -- (6.15,0);
+  \end{tikzpicture}
+
+  \vspace{0.58cm}
+  \begin{tikzpicture}
+    \callout{mist}{grid}{9.4cm}{%
+      \centering
+      \textbf{Interpretacja:} prosta reguła może być świetna eksperymentalnie,
+      ale dowód najlepszej gwarancji wymaga innej struktury.}
+  \end{tikzpicture}
+\end{frame}
+
+% ----------------------------------------------------------------------
+\begin{frame}{Redukcja do Pinwheel Scheduling}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.45\textwidth}
+      \begin{tikzpicture}
+        \callout{sky}{blue}{5.0cm}{%
+          \textbf{Pinwheel Scheduling}\\[0.2em]
+          Okno długości $f_i$ zawsze zawiera zadanie $i$.
+          Gęstość:
+          \[
+            \rho=\sum_i \frac1{f_i}.
+          \]}
+      \end{tikzpicture}
+
+      \vspace{0.3cm}
+      \begin{tikzpicture}
+        \callout{leaf}{green}{5.0cm}{%
+          Jeśli $\rho\leq1$ i $f_i$ są potęgami $2$, harmonogram istnieje.}
+      \end{tikzpicture}
+    \end{column}
+
+    \begin{column}{0.51\textwidth}
+      \centering
+      \begin{tikzpicture}[x=0.72cm,y=0.58cm]
+        \foreach \x in {0,...,9}
+          \draw[grid] (\x,0) rectangle ++(1,0.75);
+        \foreach \x/\lab/\col in {0/1/green,1/2/blue,2/1/green,3/3/amber,4/1/green,5/2/blue,6/1/green,7/4/red,8/1/green,9/2/blue}
+          \node[font=\scriptsize, text=\col] at (\x+0.5,0.37) {$b_\lab$};
+        \node[font=\scriptsize, text=subtle] at (5.0,-0.40) {harmonogram okresowy};
+
+        \node[rounded corners=6pt, fill=white, draw=grid, align=center,
+          text width=5.4cm, inner sep=7pt] at (5.05,2.65)
+          {$f_i=2^{\lfloor\log_2(2/h_i)\rfloor}$\\[0.25em]
+           $\displaystyle \rho=\sum_i\frac1{f_i}\leq\sum_i h_i=1$};
+      \end{tikzpicture}
+
+      \vspace{0.35cm}
+      \begin{tikzpicture}
+        \callout{sun}{amber}{5.7cm}{%
+          \centering
+          \textbf{Wniosek:} z Pinwheel dostajemy BGT
+          z makespanem co najwyżej $2$.}
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ----------------------------------------------------------------------
+\begin{frame}{Trimming Oracle: strategia kontra szybkie zapytanie}
+  \centering
+  \begin{tikzpicture}[
+    box/.style={rounded corners=7pt, draw, minimum width=2.55cm,
+      minimum height=0.78cm, align=center, fill=white},
+    arr/.style={-{Stealth[length=2.5mm]}, thick}
+  ]
+    \node[box, draw=green, fill=leaf] (state) {stan ogrodu};
+    \node[box, draw=blue, fill=sky, right=0.70cm of state] (query) {zapytanie};
+    \node[box, draw=amber, fill=sun, right=0.70cm of query] (answer) {indeks $j$};
+    \node[box, draw=red, fill=rose, right=0.70cm of answer] (update) {aktualizacja};
+    \draw[arr, green] (state) -- (query);
+    \draw[arr, blue] (query) -- (answer);
+    \draw[arr, amber] (answer) -- (update);
+  \end{tikzpicture}
+
+  \vspace{0.62cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.31\textwidth}
+      \begin{tikzpicture}
+        \callout{leaf}{green}{3.4cm}{%
+          \textbf{\RF$(x)$}\\
+          priority search tree\\
+          \Large $O(\log n)$}
+      \end{tikzpicture}
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \begin{tikzpicture}
+        \callout{sky}{blue}{3.4cm}{%
+          \textbf{\RM}\\
+          górna otoczka prostych\\
+          \Large $O(\log^2 n)$}
+      \end{tikzpicture}
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \begin{tikzpicture}
+        \callout{sun}{amber}{3.4cm}{%
+          \textbf{Makespan 2}\\
+          dekompozycja regularna\\
+          \Large $O(\log n)$}
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ----------------------------------------------------------------------
+\begin{frame}{Co zrobiliśmy w projekcie?}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.42\textwidth}
+      \begin{tikzpicture}
+        \callout{leaf}{green}{4.8cm}{%
+          \textbf{Implementacja w Pythonie}\\[0.25em]
+          model bambusa, operacje \texttt{grow}/\texttt{cut},
+          wspólny krok symulacji i trzy strategie wyboru.}
+      \end{tikzpicture}
+
+      \vspace{0.35cm}
+      \begin{tikzpicture}
+        \callout{sky}{blue}{4.8cm}{%
+          \textbf{Interfejs Streamlit}\\[0.25em]
+          tryby Sandbox, Compare i Game oraz wizualizacje SVG.}
+      \end{tikzpicture}
+    \end{column}
+
+    \begin{column}{0.54\textwidth}
+      \centering
+      \begin{tikzpicture}[
+        box/.style={rounded corners=6pt, draw, align=center,
+          minimum width=2.35cm, minimum height=0.72cm, font=\scriptsize},
+        arr/.style={-{Stealth[length=2.2mm]}, thick}
+      ]
+        \node[box, fill=leaf, draw=green] (model) at (0,1.55) {Bamboo\\height, growth};
+        \node[box, fill=sun, draw=amber] (logic) at (3.0,1.55) {advance\_day\\strategie};
+        \node[box, fill=sky, draw=blue] (svg) at (6.0,1.55) {SVG\\ogród + wykres};
+        \node[box, fill=rose, draw=red] (state) at (1.5,0.15) {session\\state};
+        \node[box, fill=mist, draw=grid] (ui) at (4.5,0.15) {Streamlit\\UI};
+        \node[box, fill=white, draw=subtle] (tests) at (3.0,-1.20) {unit tests\\logika};
+        \draw[arr, green] (model) -- (logic);
+        \draw[arr, amber] (logic) -- (svg);
+        \draw[arr, blue] (svg) -- (ui);
+        \draw[arr, red] (ui) -- (state);
+        \draw[arr, subtle] (state) -- (logic);
+        \draw[arr, subtle] (tests) -- (logic);
+      \end{tikzpicture}
+
+      \vspace{0.20cm}
+      \mutednote{Wizualizacja nie jest dodatkiem: pozwala zobaczyć, jak decyzje
+      algorytmu zmieniają historię makespanu.}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ----------------------------------------------------------------------
+\begin{frame}{Tryby aplikacji}
+  \centering
+  \begin{tikzpicture}[x=1cm,y=1cm]
+    \node[rounded corners=7pt, fill=leaf, draw=green, text width=3.05cm,
+      minimum height=2.0cm, align=left, inner sep=8pt] at (0,0)
+      {\textbf{Sandbox}\\[0.25em]
+       parametry ogrodu,\\
+       strategia i krok\\
+       symulacji};
+    \node[rounded corners=7pt, fill=sky, draw=blue, text width=3.05cm,
+      minimum height=2.0cm, align=left, inner sep=8pt] at (3.85,0)
+      {\textbf{Compare}\\[0.25em]
+       \RM, \RF$(x)$ i oracle działają na tym samym wejściu};
+    \node[rounded corners=7pt, fill=sun, draw=amber, text width=3.05cm,
+      minimum height=2.0cm, align=left, inner sep=8pt] at (7.70,0)
+      {\textbf{Game}\\[0.25em]
+       użytkownik tnie\\
+       bambusy i gra\\
+       przeciw botowi};
+
+    \begin{scope}[shift={(1.0,-2.80)}, x=0.72cm,y=0.30cm]
+      \draw[->, subtle] (0,0) -- (9.2,0) node[right,font=\scriptsize] {dzień};
+      \draw[->, subtle] (0,0) -- (0,3.6) node[above,font=\scriptsize] {makespan};
+      \draw[green, line width=1.35pt] plot coordinates
+        {(0,0.1)(1,0.8)(2,1.2)(3,1.3)(4,1.6)(5,1.4)(6,1.8)(7,1.6)(8,1.9)};
+      \draw[blue, line width=1.35pt] plot coordinates
+        {(0,0.1)(1,0.7)(2,1.0)(3,1.2)(4,1.3)(5,1.4)(6,1.5)(7,1.5)(8,1.6)};
+      \draw[amber, line width=1.35pt] plot coordinates
+        {(0,0.1)(1,0.9)(2,1.1)(3,1.5)(4,1.3)(5,1.8)(6,1.6)(7,2.0)(8,1.9)};
+      \node[green, anchor=west, font=\scriptsize] at (8.25,1.9) {\RM};
+      \node[blue, anchor=west, font=\scriptsize] at (8.25,1.45) {\RF};
+      \node[amber, anchor=west, font=\scriptsize] at (8.25,2.35) {gracz};
+    \end{scope}
+  \end{tikzpicture}
+\end{frame}
+
+% ----------------------------------------------------------------------
+\begin{frame}{Otwarte problemy}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.31\textwidth}
+      \begin{tikzpicture}
+        \callout{rose}{red}{3.35cm}{%
+          \textbf{\RM{} vs 2}\\[0.25em]
+          Czy \RM{} ma wynik $2$?}
+      \end{tikzpicture}
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \begin{tikzpicture}
+        \callout{sun}{amber}{3.35cm}{%
+          \textbf{\RF$(1)$}\\[0.25em]
+          Czy próg $1$ wystarcza do granicy $2$?}
+      \end{tikzpicture}
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \begin{tikzpicture}
+        \callout{sky}{blue}{3.35cm}{%
+          \textbf{Praktyczne oracle}\\[0.25em]
+          Jak proste kopce i drzewa wypadają w testach?}
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.65cm}
+  \centering
+  \mutednote{Aplikacja jest dobrym miejscem do eksperymentów, które mogą
+  podpowiedzieć hipotezy dla mocniejszych dowodów.}
+\end{frame}
+
+% ----------------------------------------------------------------------
+\begin{frame}{Najważniejsze wnioski}
+  \vspace{0.35cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.31\textwidth}
+      \begin{tikzpicture}
+        \callout{leaf}{green}{3.35cm}{%
+          \textbf{Prosty model}\\
+          \textbf{trudna analiza}\\[0.25em]
+          Jeden robot. Jedno cięcie. Nietrywialna gra.}
+      \end{tikzpicture}
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \begin{tikzpicture}
+        \callout{sky}{blue}{3.35cm}{%
+          \textbf{Granica 2}\\
+          \textbf{jest kluczowa}\\[0.25em]
+          Redukcje dają granicę $2$.}
+      \end{tikzpicture}
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \begin{tikzpicture}
+        \callout{sun}{amber}{3.35cm}{%
+          \textbf{Symulacja}\\
+          \textbf{robi różnicę}\\[0.25em]
+          Te same dane tworzą różne historie cięć.}
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.82cm}
+  \centering
+  {\Large\bfseries Dziękujemy}
+\end{frame}
+
+% ----------------------------------------------------------------------
+\begin{frame}{Bibliografia}
+  \small
+  \begin{thebibliography}{9}
+    \bibitem{bilo2022}
+    D. Bilò, L. Gualà, S. Leucci, G. Proietti, G. Scornavacca,
+    \textit{Cutting bamboo down to size}, Theoretical Computer Science 909, 2022.
+
+    \bibitem{gasieniec2017}
+    L. Gąsieniec, R. Klasing, C. Levcopoulos, A. Lingas, J. Min, T. Radzik,
+    \textit{Bamboo garden trimming problem}, SOFSEM 2017.
+
+    \bibitem{holte1989}
+    R. Holte, A. Mok, L. Rosier, I. Tulchinsky, D. Varvel,
+    \textit{The pinwheel: a real-time scheduling problem}, HICSS 1989.
+  \end{thebibliography}
+\end{frame}
+
+\end{document}

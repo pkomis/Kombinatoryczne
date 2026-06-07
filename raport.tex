@@ -1,0 +1,929 @@
+% ============================================================
+%  Raport: Bamboo Garden Trimming – Gry Kombinatoryczne
+%  Politechnika Warszawska, 2024/2025
+% ============================================================
+\documentclass[12pt,a4paper]{article}
+
+% --- Kodowanie, język i fonty -----------------------------------------
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{lmodern}
+\else
+  \usepackage{fontspec}
+  \setmainfont{lmroman12-regular.otf}[
+    BoldFont = lmroman12-bold.otf,
+    ItalicFont = lmroman12-italic.otf,
+    BoldItalicFont = lmroman10-bolditalic.otf
+  ]
+\fi
+\usepackage[polish]{babel}
+
+% --- Strona i typografia ----------------------------------------------
+\usepackage[a4paper, top=2.5cm, bottom=2.5cm, left=3cm, right=2.5cm]{geometry}
+\usepackage{microtype}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{parskip}
+\setlength{\parindent}{0pt}
+\emergencystretch=2em
+
+% --- Matematyka --------------------------------------------------------
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+
+% --- Twierdzenia -------------------------------------------------------
+\theoremstyle{plain}
+\newtheorem{twierdzenie}{Twierdzenie}[section]
+\newtheorem{lemat}[twierdzenie]{Lemat}
+\newtheorem{wniosek}[twierdzenie]{Wniosek}
+
+\theoremstyle{definition}
+\newtheorem{definicja}[twierdzenie]{Definicja}
+\newtheorem{przyklad}[twierdzenie]{Przykład}
+
+\theoremstyle{remark}
+\newtheorem{uwaga}[twierdzenie]{Uwaga}
+
+% --- Algorytmy ---------------------------------------------------------
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\floatname{algorithm}{Algorytm}
+\renewcommand{\algorithmicrequire}{\textbf{Wejście:}}
+\renewcommand{\algorithmicensure}{\textbf{Wyjście:}}
+
+% --- Tabele i grafika --------------------------------------------------
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, decorations.pathreplacing, calc}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{xcolor}
+\definecolor{bgreen}{HTML}{2d8a3e}
+\definecolor{bamber}{HTML}{b45309}
+\definecolor{bblue}{HTML}{1d4ed8}
+\definecolor{bred}{HTML}{dc2626}
+\definecolor{bgray}{HTML}{f4f0e8}
+
+% --- Inne pakiety ------------------------------------------------------
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=bblue,
+  citecolor=bamber,
+  urlcolor=bblue
+}
+\crefname{section}{sekcji}{sekcji}
+\Crefname{section}{Sekcja}{Sekcje}
+\crefname{twierdzenie}{twierdzenia}{twierdzeń}
+\Crefname{twierdzenie}{Twierdzenie}{Twierdzenia}
+\crefname{definicja}{definicji}{definicji}
+\Crefname{definicja}{Definicja}{Definicje}
+\crefname{wniosek}{wniosku}{wniosków}
+\Crefname{wniosek}{Wniosek}{Wnioski}
+
+% --- Styl nagłówków ---------------------------------------------------
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.6em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection.}{0.5em}{}
+
+% --- Nagłówek i stopka ------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textit{Bamboo Garden Trimming}}
+\fancyhead[R]{\small\textit{Gry Kombinatoryczne – PW}}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% --- Makra matematyczne -----------------------------------------------
+\newcommand{\hmax}{h_{\max}}
+\newcommand{\makespan}{\mathcal{M}}
+\newcommand{\RF}{\textsc{Reduce-Fastest}}
+\newcommand{\RM}{\textsc{Reduce-Max}}
+\newcommand{\OPT}{\textsc{Opt}}
+
+% ======================================================================
+\begin{document}
+
+% ======= STRONA TYTUŁOWA ==============================================
+\begin{titlepage}
+  \centering
+  \vspace*{1.5cm}
+
+  {\Large\bfseries Politechnika Warszawska\\[0.3em]
+  Wydział Matematyki i Nauk Informacyjnych}
+
+  \vspace{1.2cm}
+  \hrule height 1.5pt
+  \vspace{0.6cm}
+
+  {\LARGE\bfseries Bamboo Garden Trimming}\\[0.5em]
+  {\large Przygotowywanie ogrodu bambusowego –\\
+  algorytmiczne aspekty problemu harmonogramowania wieczystego}
+
+  \vspace{0.6cm}
+  \hrule height 1.5pt
+  \vspace{1.5cm}
+
+  {\large Projekt zaliczeniowy z przedmiotu}\\[0.3em]
+  {\large\bfseries Gry Kombinatoryczne}
+
+  \vspace{2cm}
+
+  \begin{tabular}{ll}
+    \textbf{Autorzy:}   & Michał Bober \\
+                        & Piotr Komisarczyk \\
+                        & Igor Staręga \\[0.8em]
+    \textbf{Data:}      & \today
+  \end{tabular}
+
+  \vfill
+
+  \begin{center}
+    \small Praca oparta na artykule:\\
+    D.~Bilò, L.~Gualà, S.~Leucci, G.~Proietti, G.~Scornavacca,\\
+    \textit{Cutting bamboo down to size},\\
+    Theoretical Computer Science 909 (2022), ss.~54–67.
+  \end{center}
+\end{titlepage}
+
+% ======= STRESZCZENIE =================================================
+\begin{abstract}
+\noindent
+Niniejszy raport omawia problem \emph{Bamboo Garden Trimming} (BGT) –
+harmonogramowania wieczystego sekwencji cięć robota-ogrodnika dbającego
+o ogród bambusowy. Zadanie polega na wyznaczeniu nieskończonego harmonogramu
+cięć minimalizującego \emph{makespan}, czyli największą wysokość kiedykolwiek
+osiągniętą przez dowolny bambus. Przedstawiamy formalny model BGT,
+intuicję stojącą za redukcją do problemu Pinwheel Scheduling oraz dwie
+naturalne strategie: \RM{} (przycinaj aktualnie najwyższy bambus) i
+\RF$(x)$ (przycinaj najszybciej rosnący bambus spośród tych, które osiągnęły
+próg~$x$). Omawiamy najważniejsze wyniki z~pracy Bilò i~wsp.: pierwsze
+stałe ograniczenie górne~$9$ dla \RM{} oraz ograniczenie
+$\tfrac{3+\sqrt{5}}{2} < 2{,}62$ dla~\RF$(x)$ przy
+$x = 1 + \tfrac{1}{\sqrt{5}}$. Ostatnia część raportu opisuje naszą
+implementację w~Pythonie i~Streamlit: interaktywną aplikację pozwalającą
+symulować, porównywać i~testować omawiane strategie.
+\end{abstract}
+
+% ======= SPIS TREŚCI ==================================================
+\newpage
+
+\tableofcontents
+
+\newpage
+
+% ======================================================================
+\section{Wprowadzenie i motywacja}
+% ======================================================================
+
+Problem \emph{Bamboo Garden Trimming} (BGT) jest matematyczną formalizacją
+pozornie banalnego zadania utrzymania ogrodu bambusowego. Wyobraźmy sobie
+dom nad jeziorem, przed którym rośnie ogród złożony z $n$~bambusów.
+Każdy bambus~$b_i$ rośnie o stałą wartość~$h_i > 0$ na dobę.
+Robot-ogrodnik może raz dziennie skosić \emph{co najwyżej jeden} bambus,
+natychmiast resetując jego wysokość do zera. Pytanie brzmi: jak zaplanować
+sekwencję cięć, aby widok na jezioro był jak najmniej zasłonięty?
+
+Problem ten, sformalizowany przez G\k{a}sieńca i współautorów
+w~\cite{gasieniec2017}, łączy w sobie zagadnienia z teorii szeregowania zadań,
+gier kombinatorycznych oraz struktury danych. Pomimo prostego opisu,
+prowadzi do interesujących pytań dotyczących granicy między scenariuszem
+statycznym a~adwersarialnym.
+
+\subsection{Znaczenie praktyczne}
+
+Choć historia z~panda-ogrodnikiem jest celowo lekka, model BGT opisuje
+realny typ problemów: ograniczony zasób obsługi musi cyklicznie reagować
+na obiekty narastające z~różnymi szybkościami. Problem BGT i~jego
+uogólnienia pojawiają się między innymi w~następujących zastosowaniach:
+\begin{itemize}[noitemsep]
+  \item \textbf{Zarządzanie buforami sieciowymi} – pakiety o różnych
+        priorytetach wymagają cyklicznego przetwarzania~\cite{goldwasser2010};
+  \item \textbf{Monitorowanie usług w~chmurze} – maszyny wirtualne wymagają
+        okresowej inspekcji pod kątem anomalii~\cite{alshamrani2015};
+  \item \textbf{Harmonogramowanie czasu rzeczywistego} – zadania z różnymi
+        częstotliwościami obsługi muszą być realizowane bez przekroczeń
+        terminów~\cite{bender2020};
+  \item \textbf{Problem kubka} (\emph{cup game}) – uogólnienie BGT, w którym
+        dzienne cięcie może przekroczyć $1$ jednostkę.
+\end{itemize}
+
+% ======================================================================
+\section{Formalna definicja problemu}
+% ======================================================================
+
+\begin{definicja}[Problem BGT]
+Ogród zawiera $n$ bambusów $b_1, \ldots, b_n$, gdzie bambus $b_i$ ma
+dzienny współczynnik wzrostu $h_i > 0$. Zakładamy, że
+\[
+  \sum_{i=1}^{n} h_i = 1
+\]
+(bez straty ogólności – skalowanie nie zmienia struktury optymalnego
+harmonogramu). Początkowo wszystkie bambusy mają wysokość $0$. Na końcu
+każdego dnia $d \geq 1$ ogrodnik może przyciąć \emph{co najwyżej jeden}
+bambus, natychmiast resetując jego wysokość do $0$.
+
+Wysokość bambusu $b_i$ na końcu dnia $d$ (przed decyzją o cięciu) wynosi:
+\[
+  H_i(d) \;=\; (d - d') \cdot h_i,
+\]
+gdzie $d' < d$ to ostatni dzień, w którym $b_i$ był cięty
+(przyjmujemy $d' = 0$, jeśli $b_i$ nigdy nie był cięty).
+
+Celem jest wyznaczenie \emph{wieczystego harmonogramu} (nieskończonej
+sekwencji decyzji o cięciu) minimalizującego \emph{makespan}:
+\[
+  \makespan \;=\; \max_{i,\,d} H_i(d).
+\]
+\end{definicja}
+
+\subsection{Normalizacja i założenia}
+
+Warunek $\sum h_i = 1$ jest uzasadniony następująco: jeśli oryginalne
+współczynniki sumują się do $S \neq 1$, wystarczy podzielić każde $h_i$
+przez $S$. Makespan skaluje się proporcjonalnie, a~struktura optymalnego
+harmonogramu pozostaje niezmieniona.
+
+Przyjmujemy standardowe uporządkowanie $h_1 \geq h_2 \geq \cdots \geq h_n > 0$.
+
+\subsection{Ograniczenia na makespan}
+
+Poniższe twierdzenie ustala dolne i górne granice optymalnego makespanu.
+
+\begin{twierdzenie}[Ograniczenia na makespan]\label{thm:bounds}
+Dla każdej instancji BGT:
+\begin{enumerate}[label=(\roman*), noitemsep]
+  \item $\makespan \geq 1$ dla każdego harmonogramu;
+  \item istnieje instancja, dla której $\makespan$ może być dowolnie bliski $2$;
+  \item makespan $2$ jest osiągalny dla każdej instancji.
+\end{enumerate}
+\end{twierdzenie}
+
+\begin{proof}
+\textbf{(i)} W~każdym dniu suma wysokości wszystkich bambusów rośnie
+o~$1$. Jeżeli makespan byłby mniejszy niż $1$, każde pojedyncze cięcie
+usuwałoby mniej niż $1$ jednostkę wysokości. W~długim horyzoncie średnia
+wysokość usuwana przez ogrodnika byłaby więc mniejsza niż dzienny przyrost,
+co prowadziłoby do nieograniczonego wzrostu łącznej wysokości. Sprzeczność.
+
+\textbf{(ii)} Rozważmy dwa bambusy: $h_1 = 1-\varepsilon$ oraz
+$h_2 = \varepsilon$. Aby bambus $b_2$ nie rósł bez ograniczeń, musi zostać
+od czasu do czasu przycięty. W~dniu, w~którym ogrodnik tnie $b_2$, nie może
+jednocześnie przyciąć $b_1$. Nawet jeśli $b_1$ był cięty dzień wcześniej,
+to przed kolejną możliwą interwencją urośnie przez dwa dni, osiągając
+wysokość $2(1-\varepsilon) = 2-2\varepsilon$. Dla $\varepsilon \to 0$
+otrzymujemy rodzinę instancji wymagających makespanu dowolnie bliskiego~$2$.
+
+\textbf{(iii)} Osiągalność makespanu~$2$ wynika z~redukcji do problemu
+Pinwheel Scheduling opisanej w~\cref{sec:pinwheel}.
+\end{proof}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[scale=0.9]
+  % Oś czasu
+  \draw[->] (0,0) -- (8.5,0) node[right] {$d$ (dzień)};
+  \draw[->] (0,0) -- (0,4.5) node[above] {$H_i(d)$};
+
+  % Etykiety osi y
+  \foreach \y/\label in {1/1, 2/2, 3/3, 4/4}
+    \draw (0.05,\y) -- (-0.05,\y) node[left] {\small$\label$};
+
+  % Bambus b1 (h=0.7)
+  \draw[bgreen, thick] (0,0) -- (1,0.7) -- (1,0) -- (2,0.7) -- (2,0)
+    -- (3,0.7) -- (3,0) -- (4,0.7) -- (4,0) -- (5,0.7) -- (5,0)
+    -- (6,0.7) -- (7,1.4) -- (7,0) -- (8,0.7);
+  \node[bgreen, right] at (8,0.7) {\small $b_1$};
+
+  % Bambus b2 (h=0.2)
+  \draw[bamber, thick] (0,0) -- (5,1.0) -- (5,0) -- (8,0.6);
+  \node[bamber, right] at (8,0.6) {\small $b_2$};
+
+  % Bambus b3 (h=0.1)
+  \draw[bblue, thick] (0,0) -- (8,0.8);
+  \node[bblue, right] at (8,0.8) {\small $b_3$};
+
+  % Linia makespanu
+  \draw[bred, dashed, thick] (0,1.4) -- (8,1.4)
+    node[right] {\small makespan};
+
+  % Etykiety osi x
+  \foreach \x in {1,...,8}
+    \draw (\x,0.05) -- (\x,-0.05) node[below] {\small$\x$};
+
+  % Oznaczenie cięcia
+  \node[below, bgreen] at (7,-0.3) {\tiny cięcie $b_1$};
+  \node[below, bamber] at (5,-0.5) {\tiny cięcie $b_2$};
+\end{tikzpicture}
+\caption{Przykład ewolucji wysokości trzech bambusów
+($h_1=0{,}7$, $h_2=0{,}2$, $h_3=0{,}1$) według strategii \RM{}.
+Czerwona linia przerywana oznacza osiągnięty makespan.}
+\label{fig:example}
+\end{figure}
+
+% ======================================================================
+\section{Znane strategie heurystyczne}
+% ======================================================================
+
+\subsection{Strategia Reduce-Max}
+
+\begin{definicja}[\RM]
+W każdym dniu ogrodnik przycina bambus o \emph{największej aktualnej wysokości}.
+Remisy rozstrzygane są dowolnie.
+\end{definicja}
+
+\RM{} jest najbardziej naturalną heurystyką i~zachowuje się bardzo dobrze
+w~praktyce. Wyniki eksperymentalne sugerują, że jej makespan może być
+ograniczony przez~$2$~\cite{demidio2019}, jednak najlepsze znane ograniczenie
+górne w~scenariuszu adwersarialnym wynosi
+$1 + \mathcal{H}_{n-1} = \Theta(\log n)$, gdzie $\mathcal{H}_{n-1}$
+to $(n-1)$-ta liczba harmoniczna~\cite{bodlaender2012}.
+
+Kluczowym wynikiem artykułu Bilò i~wsp.\ jest:
+
+\begin{twierdzenie}[\cite{bilo2022}, Twierdzenie~1]\label{thm:rm}
+\RM{} gwarantuje makespan co najwyżej $9$.
+\end{twierdzenie}
+
+Jest to \textbf{pierwsze stałe ograniczenie górne} dla tej strategii
+w~scenariuszu nieadwersarialnym, wykazując rozdział między scenariuszem
+statycznym a~adwersarialnym.
+
+\subsubsection{Szkic dowodu}
+
+Podzielmy bambusy na \emph{poziomy}: bambus $b_i$ jest na poziomie~$j\geq 1$,
+jeśli
+\[
+  \frac{1}{2^j} \leq h_i < \frac{1}{2^{j-1}}.
+\]
+Niech $L_j$ oznacza zbiór bambusów poziomu $j$, a~$\sigma(j)$~– maksymalną
+wysokość kiedykolwiek osiągniętą przez dowolny bambus poziomu $\geq j$
+(z~$\sigma(K+1) = 0$). Kluczowa rekurencja to:
+
+\begin{equation}\label{eq:recurrence}
+  \sigma(j) \;\leq\; \max\!\bigl\{3,\,\sigma(j+1)\bigr\}
+             \;+\; 3\sum_{k=1}^{j} \frac{|L_k|}{2^j}.
+\end{equation}
+
+\textbf{Argument o powtarzanych cięciach.} Rozważmy okno $[d_0+1, d_1]$,
+w~którym \RM{} tnie wyłącznie bambusy poziomu $\leq j$ o wysokości $\geq 3$.
+Cięcia dzielimy na:
+\begin{itemize}[noitemsep]
+  \item \emph{pierwsze cięcia} – bambus cięty po raz pierwszy w oknie;
+        jest ich co najwyżej $\sum_{k=1}^{j}|L_k|$;
+  \item \emph{powtarzane cięcia} – bambus cięty ponownie; każde usuwa
+        co najmniej $3$ jednostki wzrostu, więc stanowią co najwyżej
+        $\tfrac{1}{3}$ wszystkich dni okna.
+\end{itemize}
+Stąd $d_1 - d_0 \leq \tfrac{3}{2}\sum_{k=1}^{j}|L_k|$.
+
+Sumując wkłady bambusów i korzystając z $\sum h_i = 1$:
+\[
+  \sigma(1) \;\leq\; 3 + 3\sum_{j=1}^{K}\sum_{k=1}^{j}\frac{|L_k|}{2^j}
+             \;\leq\; 3 + 6\sum_{i=1}^{n} h_i \;=\; 9. \qquad \square
+\]
+
+\subsection{Strategia Reduce-Fastest(x)}
+
+\begin{definicja}[\RF$(x)$]
+W każdym dniu ogrodnik przycina bambus o \emph{najwyższym współczynniku wzrostu}
+spośród tych, które osiągnęły wysokość co najmniej~$x$. Jeśli żaden bambus
+nie przekroczył progu~$x$, strategia może nie wykonać cięcia; w~naszej
+implementacji stosujemy praktyczny wariant z~awaryjnym wyborem \RM{},
+żeby symulacja zawsze wykonywała jedno sensowne działanie dziennie.
+\end{definicja}
+
+\begin{twierdzenie}[\cite{bilo2022}, Twierdzenie~2]\label{thm:rf}
+Dla stałego $x > 1$, makespan \RF$(x)$ jest ograniczony przez:
+\[
+  \makespan \;\leq\; \max\!\left\{
+    x + \frac{x^2}{4(x-1)},\quad
+    \frac{1}{2} + x + \frac{x^2}{4\!\left(x - \tfrac{1}{2}\right)}
+  \right\}.
+\]
+\end{twierdzenie}
+
+\begin{wniosek}\label{cor:golden}
+Dla $x = 1 + \tfrac{1}{\sqrt{5}}$ (optymalny wybór) makespan \RF$(x)$ wynosi
+co najwyżej $1 + \varphi = \tfrac{3+\sqrt{5}}{2} \approx 2{,}618$,
+gdzie $\varphi = \tfrac{1+\sqrt{5}}{2}$ to złota liczba.
+
+Dla $x = 2$ (poprzednio uważany za najlepszy) uzyskujemy poprawione
+ograniczenie $\tfrac{19}{6} \approx 3{,}17$, lepsze od wcześniejszego
+wyniku~$4$.
+\end{wniosek}
+
+\subsubsection{Kluczowe idee dowodu}
+
+Niech $[0, T]$ oznacza interwał, w~którym bambus $b_i$ nie jest cięty
+(od momentu gdy osiągnął wysokość $\geq x$). Definiujemy:
+\begin{itemize}[noitemsep]
+  \item \emph{objętość} $V = T$ – całkowity wzrost ogrodu w~$[0,T-1]$;
+  \item $N$ – liczba różnych bambusów ciętych w~$[0,T-1]$;
+  \item $V'$ – objętość usunięta przez powtarzane cięcia.
+\end{itemize}
+
+Ponieważ każde powtarzane cięcie usuwa co najmniej $x$ jednostek:
+$V' \leq T(1-h_i) - N^2 h_i$. Z warunkiem $h_j \geq h_i$ dla każdego
+ciętego~$b_j$, wyprowadza się:
+\[
+  T \;\leq\; \frac{x^2}{4 h_i (h_i + x - 1)}.
+\]
+Makespan wynosi $M \leq x + h_i + T h_i$, co po optymalizacji po $h_i$
+daje wzór z~\cref{thm:rf}.
+
+\subsection{Porównanie heurystyk}
+
+\begin{table}[htbp]
+\centering
+\caption{Zestawienie znanych granic makespanu dla omawianych strategii.}
+\label{tab:comparison}
+\small
+\begin{tabularx}{\textwidth}{@{}lYYY@{}}
+\toprule
+\textbf{Strategia} & \textbf{Ograniczenie górne} & \textbf{Ograniczenie dolne}
+  & \textbf{Złożoność oracle} \\
+\midrule
+\RM{} (adwersarialny) & $\Theta(\log n)$, ciasne & $\Theta(\log n)$
+  & $O(\log^2 n)$ lub $O(\log n)$ amortyzowane \\
+\RM{} (statyczny)     & $\leq 9$ \textbf{[nowy]} & $\geq 1$
+  & $O(\log^2 n)$ \\
+\RF$(x=2)$            & $\leq 19/6$ \textbf{[poprawa]} & brak znanych
+  & $O(\log n)$ \\
+\RF$(x=1+1/\sqrt{5})$ & $\leq (3+\sqrt{5})/2 \approx 2{,}62$ \textbf{[nowy]}
+  & brak znanych & $O(\log n)$ \\
+Optymalny (Pinwheel) & $\leq 2$, asymptotycznie ciasne & $\geq 2-\varepsilon$
+  & $O(\log n)$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ======================================================================
+\section{Powiązanie z problemem Pinwheel Scheduling}\label{sec:pinwheel}
+% ======================================================================
+
+\begin{definicja}[Pinwheel Scheduling, PS]
+Dane jest $n$~zadań z~całkowitymi częstotliwościami $f_i \geq 1$.
+Szukamy wieczystego harmonogramu $S$ takiego, że każde zadanie~$i$
+pojawia się co najmniej raz w~każdym spójnym podciągu długości~$f_i$.
+\emph{Gęstość} instancji definiujemy jako $\rho = \sum_{i=1}^{n} \tfrac{1}{f_i}$.
+\end{definicja}
+
+\begin{twierdzenie}[Warunek konieczny i dostateczny, \cite{holte1989}]
+Instancja PS z~$\rho > 1$ nie posiada dopuszczalnego harmonogramu.
+Jeśli $\rho \leq 1$ i~wszystkie $f_i$ są potęgami~$2$, dopuszczalny
+harmonogram zawsze istnieje.
+\end{twierdzenie}
+
+\subsection{Redukcja BGT $\to$ PS dla makespanu 2}
+
+Aby uzyskać makespan $\leq 2$, chcemy ciąć bambus $b_i$ co najwyżej
+$\lfloor 2/h_i \rfloor$ dni. Definiujemy:
+\[
+  f_i \;=\; 2^{\lfloor \log_2(2/h_i) \rfloor}
+  \quad\text{(zaokrąglenie $\lfloor 2/h_i \rfloor$ w~dół do potęgi 2)}.
+\]
+Gęstość wynikowej instancji PS:
+\[
+  \rho \;=\; \sum_{i=1}^{n} \frac{1}{f_i}
+       \;\leq\; \sum_{i=1}^{n} h_i
+       \;=\; 1.
+\]
+Ponieważ $f_i$ są potęgami 2, istnieje dopuszczalny harmonogram PS,
+który bezpośrednio daje harmonogram BGT z~makespanem $\leq 2$.
+
+\textbf{Problem praktyczny.} Wszystkie dopuszczalne harmonogramy instancji PS
+mogą mieć długość $\Omega\!\bigl(\prod_{i=1}^{n} f_i\bigr)$~\cite{holte1989},
+co czyni naiwne podejście wykładniczym. Rozwiązaniem jest \emph{Trimming Oracle}
+(patrz \cref{sec:oracles}).
+
+Relacja między BGT i~Pinwheel Scheduling wpisuje się w~szerszy nurt badań
+nad harmonogramami okresowymi. Klasy dopuszczalnych instancji Pinwheel były
+rozszerzane między innymi w~\cite{chan1993}, natomiast dla dyskretnego BGT
+rozwijano także niezależne podejścia aproksymacyjne, np.~\cite{vee2020}.
+
+% ======================================================================
+\section{Trimming Oracles – struktury danych}\label{sec:oracles}
+% ======================================================================
+
+\begin{definicja}[Trimming Oracle]
+Trimming Oracle to struktura danych utrzymująca stan ogrodu i odpowiadająca
+na zapytanie \emph{„Który bambus ciąć dzisiaj?"} w~czasie sub-liniowym,
+używając przestrzeni liniowej.
+\end{definicja}
+
+Poniżej opisujemy trzy wyrocznie (\emph{oracles}) z~artykułu~\cite{bilo2022}.
+
+\subsection{Oracle dla Reduce-Fastest(x)}
+
+\textbf{Idea.} Dla każdego bambusa $b_i$ utrzymujemy dzień $d_i$,
+w~którym $b_i$ osiągnie wysokość $\geq x$. Zapytanie zwraca $b_i$
+z~minimalnym indeksem $i$ spośród tych, dla których $d_i \leq D$.
+
+\textbf{Struktura danych.} Używamy \emph{drzewa wyszukiwania priorytetowego}
+(priority search tree, PST)~\cite{mccreight1985} utrzymującego punkty
+$(d_i, i)$ z~operacjami:
+\begin{itemize}[noitemsep]
+  \item $\textsc{MinYInXRange}(T, x_0)$: minimum $i$ wśród $(d_i, i)$
+        z~$d_i \leq x_0$;
+  \item $\textsc{GetX}(T, y)$: współrzędna $d_i$ punktu o~$y = i$.
+\end{itemize}
+Obie operacje działają w~czasie $O(\log n)$.
+
+\textbf{Problem rosnących indeksów.} Dni $d_i$ i~$D$ rosną bezgranicznie.
+Rozwiązanie: dzielimy czas na \emph{interwały} $I_j = [nj, n(j+1)-1]$
+i~utrzymujemy dwa drzewa $T_1$, $T_2$ dla bieżącego i~następnego
+interwału, mierząc dni od początku interwału.
+
+\begin{algorithm}[htbp]
+\caption{Trimming Oracle dla \RF$(x)$ – funkcja Query}
+\label{alg:rf}
+\begin{algorithmic}[1]
+\Require dzień $\delta$ w~bieżącym interwale $I_j$
+\Ensure indeks bambusa do przycięcia (lub brak akcji)
+\State $i \gets \textsc{MinYInXRange}(T_1, \delta)$
+\If{$i$ istnieje}
+  \State $\textsc{Update}(T_1,\; \delta + \lceil x/h_i \rceil,\; i)$
+  \State $\textsc{Update}(T_2,\; \delta + \lceil x/h_i \rceil - n,\; i)$
+\EndIf
+\State Zaktualizuj $T_2$ dla bambusa $b_{\delta+1}$
+\State $\delta \gets (\delta + 1) \bmod n$
+\If{$\delta = 0$}
+  \State Zamień $T_1$ i~$T_2$
+\EndIf
+\State \Return „Przytnij $b_i$" (lub „brak akcji")
+\end{algorithmic}
+\end{algorithm}
+
+\begin{twierdzenie}[\cite{bilo2022}, Twierdzenie~3]\label{thm:oracle-rf}
+Istnieje Trimming Oracle implementujący \RF$(x)$ o~przestrzeni $O(n)$,
+czasie budowy $O(n \log n)$ i~czasie zapytania $O(\log n)$ w~pesymistycznym
+przypadku.
+\end{twierdzenie}
+
+\subsection{Oracle dla Reduce-Max}
+
+\textbf{Idea.} Każdy bambus $b_i$ reprezentujemy prostą $\ell_i(d) = h_i d + c_i$
+opisującą jego wysokość w~dniu $d$. Zapytanie wymaga znalezienia
+$\arg\max_i \ell_i(D)$, co odpowiada obliczeniu \emph{górnej otoczki}
+(upper envelope) zbioru prostych.
+
+\textbf{Struktura danych.} Używamy dynamicznej struktury utrzymującej
+górną otoczkę~\cite{overmars1981, brodal2002}, obsługując:
+\begin{itemize}[noitemsep]
+  \item wstawianie i~usuwanie prostej: $O(\log^2 n)$ pesymistycznie
+        lub $O(\log n)$ amortyzowanym;
+  \item zapytanie $\textsc{Upper}(U, d)$: prosta maksymalna w~punkcie $d$
+        w~czasie $O(\log n)$.
+\end{itemize}
+
+\begin{twierdzenie}[\cite{bilo2022}, Twierdzenie~4]\label{thm:oracle-rm}
+Istnieje Trimming Oracle implementujący \RM{} o~przestrzeni $O(n)$,
+czasie budowy $O(n \log n)$, czasie zapytania $O(\log^2 n)$ pesymistycznie
+lub $O(\log n)$ amortyzowanym.
+\end{twierdzenie}
+
+\subsection{Oracle gwarantujący makespan 2}
+
+\textbf{Idea.} Zaokrąglamy współczynniki $h_i$ do najbliższych mniejszych
+potęg dwójki i~konstruujemy wieczyste harmonogramy dla tak zwanych \emph{instancji
+regularnych}.
+
+\begin{definicja}[Instancja regularna]
+Instancja jest \emph{regularna}, jeśli bambus $b_i$ ma współczynnik wzrostu
+$h_i = 2^{-i}$ dla $i = 1, \ldots, n-1$ i~$h_n = h_{n-1} = 2^{-(n-1)}$.
+\end{definicja}
+
+Dla instancji regularnych istnieje elegancka reguła: bambus do przycięcia
+w~dniu $D$ to $b_i$, gdzie $i$ jest pozycją \emph{najmniej znaczącego bitu
+równego 0} w~binarnej reprezentacji $D$. Jeśli wszystkie $n-1$ najmłodszych
+bitów wynosi~$1$, tniemy $b_n$.
+
+\begin{twierdzenie}[\cite{bilo2022}, Lemat~1]
+Dla instancji regularnych istnieje Trimming Oracle o~przestrzeni $O(n)$,
+czasie budowy $O(n)$ i~czasie zapytania $O(1)$ pesymistycznie,
+gwarantujący makespan~$1$.
+\end{twierdzenie}
+
+Dla ogólnych instancji stosuje się hierarchiczną dekompozycję:
+bambusy są iteracyjnie łączone w~\emph{wirtualne bambusy}, tworząc
+drzewo $T_O$ o~logarytmicznej głębokości. Każdy węzeł wewnętrzny
+zawiera Oracle dla instancji regularnej (skalibrowanej lokalnie).
+
+\begin{twierdzenie}[\cite{bilo2022}, Twierdzenie~5]\label{thm:oracle-opt}
+Istnieje Trimming Oracle gwarantujący makespan~$2$, o~przestrzeni $O(n)$,
+czasie budowy $O(n \log n)$ i~czasie zapytania $O(\log n)$.
+\end{twierdzenie}
+
+% ======================================================================
+\section{Implementacja: interaktywna aplikacja webowa}
+% ======================================================================
+
+W ramach projektu przygotowaliśmy interaktywną aplikację webową
+wizualizującą problem BGT. Aktualna wersja repozytorium jest napisana
+w~\textbf{Pythonie} z~użyciem biblioteki \textbf{Streamlit}. Taki wybór
+technologii dobrze pasuje do charakteru projektu: najważniejsza jest
+czytelna logika symulacji, szybkie eksperymentowanie z~parametrami oraz
+proste uruchomienie aplikacji bez osobnego frontendu i~backendu.
+
+Aplikacja nie korzysta z~zewnętrznych bibliotek obliczeniowych. Strategie
+\RM{}, \RF$(x)$ oraz wariant oracle są zaimplementowane bezpośrednio
+w~kodzie projektu, a~wizualizacje ogrodu i~wykresów generowane są jako
+wektorowe rysunki SVG po stronie Pythona.
+
+\subsection{Architektura}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  box/.style={draw, rounded corners=4pt, minimum width=3cm,
+              minimum height=1cm, align=center, font=\small},
+  arr/.style={->, >=Stealth, thick}
+]
+  \node[box, fill=bgreen!15, draw=bgreen] (model) at (0,0)
+    {Model danych\\[-2pt]\tiny\textit{Bamboo, growth, height}};
+  \node[box, fill=bamber!15, draw=bamber] (logic) at (4,0)
+    {Logika symulacji\\[-2pt]\tiny\textit{grow(), cut(), advance\_day()}};
+  \node[box, fill=bblue!15, draw=bblue] (svg) at (8,0)
+    {Renderowanie SVG\\[-2pt]\tiny\textit{garden + sparkline}};
+  \node[box, fill=bred!15, draw=bred] (state) at (2,-2)
+    {Stan sesji\\[-2pt]\tiny\textit{st.session\_state}};
+  \node[box, fill=gray!15, draw=black!45] (ui) at (6,-2)
+    {Interfejs Streamlit\\[-2pt]\tiny\textit{Sandbox / Compare / Game}};
+
+  \draw[arr, bgreen] (model) -- (logic);
+  \draw[arr, bamber] (logic) -- (svg);
+  \draw[arr] (state) -- (logic);
+  \draw[arr] (ui) -- (state);
+  \draw[arr] (svg) -- (ui);
+\end{tikzpicture}
+\caption{Architektura aktualnej aplikacji BGT. Część obliczeniowa jest
+wydzielona na czyste funkcje, a~Streamlit odpowiada za stan sesji,
+kontrolki i~prezentację.}
+\label{fig:arch}
+\end{figure}
+
+Najważniejsze elementy kodu:
+\begin{itemize}[noitemsep]
+  \item \texttt{Bamboo} – niemutowalna struktura opisująca pojedynczy bambus;
+  \item \texttt{grow()} i~\texttt{cut()} – podstawowe operacje na ogrodzie;
+  \item \texttt{advance\_day()} – wspólna funkcja wykonująca jeden dzień
+        symulacji dla dowolnej strategii;
+  \item \texttt{oracle\_reduce\_max()}, \texttt{oracle\_reduce\_fastest()}
+        oraz \texttt{oracle\_optimal()} – implementacje reguł wyboru cięcia;
+  \item \texttt{bamboo\_garden\_svg()} i~\texttt{sparkline\_svg()} –
+        generatory wizualizacji w~SVG.
+\end{itemize}
+
+\subsection{Tryby działania}
+
+Aplikacja oferuje trzy tryby:
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{Sandbox} – użytkownik konfiguruje ogród (liczba bambusów,
+        współczynniki wzrostu), wybiera algorytm spośród \RM{}, \RF$(x)$
+        (z~regulowanym progiem $x$) i~optymalnego Oracle, obserwuje
+        animowaną symulację dzień po dniu.
+
+  \item \textbf{Porównanie} – wszystkie trzy algorytmy działają
+        równolegle na tym samym wejściu; na żywo wyświetlane są
+        makespany i~historia na wspólnym wykresie.
+
+  \item \textbf{Tryb gry} – użytkownik sam gra rolę ogrodnika,
+        klika w~bambusy, by je przyciąć, rywalizując z~botem
+        \RM{} o~niższy makespan.
+\end{enumerate}
+
+\subsection{Kluczowe decyzje implementacyjne}
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Dyskretna symulacja} – każdy krok odpowiada jednemu dniowi:
+        bambusy najpierw rosną, następnie oracle wybiera bambus do przycięcia.
+  \item \textbf{Niemutowalny model danych} – funkcje \texttt{grow()} i
+        \texttt{cut()} zwracają nowe listy bambusów, co upraszcza testowanie
+        i~zmniejsza ryzyko przypadkowego nadpisania stanu.
+  \item \textbf{Wspólny interfejs strategii} – każda strategia jest funkcją
+        przyjmującą listę bambusów i~zwracającą indeks wybranego cięcia.
+  \item \textbf{Stan w~\texttt{st.session\_state}} – Streamlit przechowuje
+        aktualny ogród, historię makespanu, wybrany tryb i~parametry
+        użytkownika.
+  \item \textbf{Renderowanie SVG} – grafika jest stylizowana na ilustrację
+        z~artykułu: zielone łodygi bambusa, znaczniki wysokości, linie
+        pomocnicze i~robot-panda wskazujący ostatnie cięcie.
+  \item \textbf{Testowalna warstwa obliczeniowa} – funkcje symulacyjne są
+        niezależne od Streamlita i~są pokryte testami jednostkowymi.
+\end{itemize}
+
+\subsection{Uruchomienie i testy}
+
+Projekt można uruchomić lokalnie poleceniami:
+\begin{verbatim}
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+streamlit run app.py
+\end{verbatim}
+
+Do weryfikacji logiki symulacji przygotowano testy jednostkowe:
+\begin{verbatim}
+python -m unittest
+\end{verbatim}
+
+Testy sprawdzają między innymi niezmienniczość operacji \texttt{grow()}
+i~\texttt{cut()}, wybór bambusa przez \RM{} i~\RF$(x)$, normalizację
+współczynników wzrostu oraz poprawne raportowanie makespanu przed cięciem.
+
+\subsection{Wkład własny}
+
+Warstwa teoretyczna raportu opiera się na wynikach znanych z~literatury,
+przede wszystkim z~pracy Bilò i~wsp.~\cite{bilo2022}. Nasz wkład projektowy
+polega na przełożeniu tych wyników na działające narzędzie eksperymentalne:
+\begin{itemize}[noitemsep]
+  \item przygotowaliśmy implementację symulacji BGT w~Pythonie;
+  \item zaimplementowaliśmy trzy reguły wyboru cięcia i~wspólny mechanizm
+        kroku symulacji;
+  \item zbudowaliśmy trzy tryby interakcji: Sandbox, Compare oraz Game;
+  \item dodaliśmy wizualizacje SVG pokazujące aktualne wysokości bambusów,
+        ostatnie cięcie i~historię makespanu;
+  \item przygotowaliśmy testy jednostkowe sprawdzające kluczowe operacje
+        modelu.
+\end{itemize}
+
+Dzięki temu raport nie kończy się wyłącznie na omówieniu twierdzeń:
+pokazuje również, jak abstrakcyjne strategie zachowują się w~konkretnych,
+uruchamialnych instancjach.
+
+% ======================================================================
+\section{Analiza złożoności i podsumowanie wyników}
+% ======================================================================
+
+\subsection{Zestawienie złożoności Oracle'i}
+
+\begin{table}[htbp]
+\centering
+\caption{Złożoność czasowa i~przestrzenna Trimming Oracle'i.}
+\label{tab:oracles}
+\small
+\begin{tabularx}{\textwidth}{@{}lYYYY@{}}
+\toprule
+\textbf{Strategia / Oracle} & \textbf{Makespan} & \textbf{Budowa}
+  & \textbf{Zapytanie} & \textbf{Przestrzeń} \\
+\midrule
+\RM{} naiwny        & $\leq 9$    & $O(n)$        & $O(n)$ & $O(n)$ \\
+\RM{} z~otoczką     & $\leq 9$    & $O(n\log n)$  & $O(\log^2 n)$ lub $O(\log n)$ amort. & $O(n)$ \\
+\RF$(x)$            & $\leq 2{,}62$ dla opt. $x$ & $O(n\log n)$ & $O(\log n)$ & $O(n)$ \\
+Oracle makespan-2   & $\leq 2$    & $O(n\log n)$  & $O(\log n)$ & $O(n)$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Warto podkreślić różnicę między \emph{strategią} a~\emph{oracle}. Strategia
+określa, który bambus powinien zostać przycięty, natomiast oracle odpowiada
+za efektywne znalezienie tego bambusa bez przeglądania całego ogrodu.
+Nasza aplikacja implementuje reguły wyboru bez zaawansowanych struktur danych,
+ponieważ jej celem jest interaktywna demonstracja i~eksperymentowanie na
+umiarkowanych instancjach, a~nie obsługa milionów bambusów.
+
+\subsection{Otwarte problemy}
+
+Artykuł pozostawia kilka otwartych pytań o~dużym znaczeniu:
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{Hipoteza dla \RM:} Czy makespan \RM{} wynosi co najwyżej~$2$
+        dla każdej instancji? Eksperymentalnie odpowiedź jest twierdząca,
+        ale dowód algebraiczny pozostaje nieznany.
+  \item \textbf{Hipoteza dla \RF$(1)$:} Czy \RF$(1)$ gwarantuje
+        makespan~$2$? To odpowiadałoby optymalności przy zerowym narzucie
+        na selekcję.
+  \item \textbf{Dolne ograniczenie dla \RF$(x)$:} Nie są znane żadne
+        dolne ograniczenia inne niż trywialne $\geq 1$.
+  \item \textbf{Lepsza praktyczna implementacja oracle'i:} Interesujące
+        byłoby porównanie struktur teoretycznych z~prostymi implementacjami
+        używającymi kopców, drzew przedziałowych lub struktur bibliotecznych.
+\end{enumerate}
+
+% ======================================================================
+\section{Wnioski}
+% ======================================================================
+
+Problem Bamboo Garden Trimming jest dobrym przykładem sytuacji, w~której
+bardzo prosta reguła działania prowadzi do nietrywialnej analizy
+kombinatorycznej. Wystarczy jeden robot, jeden ogród i~jedno cięcie dziennie,
+żeby pojawiły się pytania o~granice aproksymacji, redukcje do harmonogramowania
+wieczystego oraz dynamiczne struktury danych.
+
+Główne wyniki artykułu Bilò i~wsp.~\cite{bilo2022} to:
+
+\begin{itemize}[noitemsep]
+  \item pierwsze stałe ograniczenie górne na makespan \RM{}: $\leq 9$,
+  \item poprawa ograniczenia dla \RF$(x)$ do $\approx 2{,}62$
+        przy optymalnym $x = 1 + 1/\sqrt{5}$,
+  \item trzy wydajne Trimming Oracle'i, w~tym Oracle gwarantujący
+        makespan~$2$ w~czasie $O(\log n)$ na zapytanie,
+  \item rozwiązanie otwartego problemu z~\cite{gasieniec2017}
+        dotyczącego implementacji \RM{} w~czasie $o(n)$.
+\end{itemize}
+
+Zaimplementowana przez nas aplikacja webowa pozwala na interaktywne
+badanie powyższych strategii i~wizualną weryfikację ich zachowania
+na wybranych instancjach. Tryb porównania pokazuje, że różnice między
+\RM{}, \RF$(x)$ i~oracle nie są jedynie abstrakcyjne: dla tych samych
+współczynników wzrostu algorytmy mogą generować inną historię makespanu
+i~inne decyzje cięcia. Projekt stanowi więc praktyczne uzupełnienie analizy
+teoretycznej: pozwala zobaczyć, jak twierdzenia przekładają się na dynamikę
+konkretnego ogrodu.
+
+% ======================================================================
+% BIBLIOGRAFIA
+% ======================================================================
+\newpage
+\begin{thebibliography}{99}
+
+\bibitem{bilo2022}
+D.~Bilò, L.~Gualà, S.~Leucci, G.~Proietti, G.~Scornavacca,
+\textit{Cutting bamboo down to size},
+Theoretical Computer Science \textbf{909} (2022), ss.~54--67.
+\url{https://doi.org/10.1016/j.tcs.2022.01.027}
+
+\bibitem{gasieniec2017}
+L.~G\k{a}sieniec, R.~Klasing, C.~Levcopoulos, A.~Lingas, J.~Min,
+T.~Radzik,
+\textit{Bamboo garden trimming problem (perpetual maintenance of machines
+with different attendance urgency factors)},
+w: SOFSEM 2017, Lecture Notes in Computer Science,
+Springer 2017, ss.~229--240.
+
+\bibitem{holte1989}
+R.~Holte, A.~Mok, L.~Rosier, I.~Tulchinsky, D.~Varvel,
+\textit{The pinwheel: a real-time scheduling problem},
+Proceedings of the 22nd Annual Hawaii International Conference
+on System Sciences, 1989, ss.~693--702.
+
+\bibitem{bodlaender2012}
+M.H.L.~Bodlaender, C.A.J.~Hurkens, V.J.J.~Kusters, F.~Staals,
+G.J.~Woeginger, H.~Zantema,
+\textit{Cinderella versus the wicked stepmother},
+w: TCS 2012, Lecture Notes in Computer Science, t.~7604,
+Springer 2012, ss.~57--71.
+
+\bibitem{demidio2019}
+M.~D'Emidio, G.D.~Stefano, A.~Navarra,
+\textit{Bamboo garden trimming problem: priority schedulings},
+Algorithms \textbf{12}(4) (2019), art.~74.
+\url{https://doi.org/10.3390/a12040074}
+
+\bibitem{alshamrani2015}
+S.S.~Alshamrani, D.R.~Kowalski, L.A.~G\k{a}sieniec,
+\textit{Efficient discovery of malicious symptoms in clouds via
+monitoring virtual machines},
+IEEE CIT/IUCC/DASC/PICom 2015, ss.~1703--1710.
+
+\bibitem{bender2020}
+M.A.~Bender, R.~Das, M.~Farach-Colton, R.~Johnson, W.~Kuszmaul,
+\textit{Flushing without cascades},
+Proceedings of SODA 2020, ss.~650--669.
+
+\bibitem{goldwasser2010}
+M.H.~Goldwasser,
+\textit{A survey of buffer management policies for packet switches},
+SIGACT News \textbf{41}(1) (2010), ss.~100--128.
+
+\bibitem{mccreight1985}
+E.M.~McCreight,
+\textit{Priority search trees},
+SIAM Journal on Computing \textbf{14}(2) (1985), ss.~257--276.
+
+\bibitem{overmars1981}
+M.H.~Overmars, J.~van Leeuwen,
+\textit{Maintenance of configurations in the plane},
+Journal of Computer and System Sciences \textbf{23}(2) (1981),
+ss.~166--204.
+
+\bibitem{brodal2002}
+G.S.~Brodal, R.~Jacob,
+\textit{Dynamic planar convex hull},
+Proceedings of FOCS 2002, ss.~617--626.
+
+\bibitem{chan1993}
+M.Y.~Chan, F.Y.L.~Chin,
+\textit{Schedulers for larger classes of pinwheel instances},
+Algorithmica \textbf{9}(5) (1993), ss.~425--462.
+
+\bibitem{vee2020}
+M.~van Ee,
+\textit{A 12/7-approximation algorithm for the discrete bamboo
+garden trimming problem},
+CoRR, arXiv:2004.11731, 2020.
+
+\end{thebibliography}
+
+\end{document}
