@@ -641,14 +641,15 @@ w~kodzie projektu, a~wizualizacje ogrodu i~wykresów generowane są jako
 wektorowe rysunki SVG po stronie Pythona.
 
 Implementacja harmonogramu Makespan-2 stosuje redukcję z~\cite{bilo2022}:
-normalizuje współczynniki wzrostu i~zaokrągla każdy z~nich w~dół do
-najbliższej potęgi~$1/2$. Bezkolizyjne okresowe terminy cięć są następnie
-reprezentowane przez drzewo prefiksowe. Niewykorzystane terminy mogą zostać
-przeznaczone na dodatkowe cięcie według \RM{}, co nie pogarsza gwarancji.
-Jest to prostsza realizacja harmonogramu dyadycznego odpowiednia dla małych
-instancji wizualizowanych w~aplikacji; nie implementuje zoptymalizowanego
-drzewa wirtualnych bambusów używanego w~\cite{bilo2022} do uzyskania
-czasu zapytania $O(\log n)$.
+normalizuje współczynniki wzrostu, zaokrągla je w~dół do potęg~$1/2$,
+dopełnia instancję dyadyczną do sumy~$1$, a~następnie buduje drzewo
+wirtualnych bambusów. Każdy węzeł wewnętrzny harmonogramuje swoje dzieci
+jako przeskalowaną instancję regularną, zgodnie z~konstrukcją oracle'a
+gwarantującego makespan~$2$. Wersja w~aplikacji zachowuje tę konstrukcję
+i~gwarancję makespanu, ale dla małych instancji używa prostszego
+wyszukiwania operacji merge oraz arytmetycznego wyznaczania kolejnego
+dziecka zamiast zoptymalizowanych struktur danych z~dowodu złożoności
+$O(n\log n)$ budowy i~$O(\log n)$ zapytania.
 
 \subsection{Architektura}
 

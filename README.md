@@ -6,7 +6,7 @@ Interaktywny symulator problemu Bamboo Garden Trimming (BGT), przepisany z React
 ## Funkcje
 
 * **Sandbox Mode:** eksperymentowanie z wlasnymi tempami wzrostu i algorytmami ciecia.
-* **Compare Mode:** porownanie Reduce-Max, Reduce-Fastest(x) oraz harmonogramu Makespan-2 na tym samym ogrodzie.
+* **Compare Mode:** porownanie Reduce-Max, Reduce-Fastest(x) oraz harmonogramu Makespan-2 na tym samym ogrodzie, z szybkim eksperymentem, wykresem i eksportem CSV/SVG.
 * **Game Mode:** gra przeciwko botowi Reduce-Max, z jednym cieciem na dzien.
 
 ## Tech stack
@@ -35,8 +35,10 @@ tests/                 # testy logiki niezaleznej od UI
 
 Harmonogram Makespan-2 korzysta z redukcji opisanej przez Bilo i wsp.:
 normalizuje tempa wzrostu, zaokragla je w dol do poteg `1/2`, a nastepnie
-przydziela bezkolizyjne okresowe sloty przez drzewo prefiksowe. Gwarantowane
-sloty daja makespan co najwyzej `2` dla instancji o sumie temp rownej `1`.
+dopelnia instancje dyadyczna do sumy `1` i buduje drzewo wirtualnych bambusow.
+Kazdy wezel wewnetrzny harmonogramuje swoje dzieci jako przeskalowana
+instancje regularna. Daje to makespan co najwyzej `2` dla instancji o sumie
+temp rownej `1`.
 
 ## Uruchomienie lokalne
 

@@ -204,3 +204,100 @@ def sparkline_svg(
     )
     return "\n".join(parts)
 
+
+def comparison_chart_svg(
+    series: dict[str, list[float]],
+    labels: dict[str, str],
+    colors: dict[str, str],
+    height: int = 270,
+    width: int = 760,
+) -> str:
+    if not series:
+        return f'<svg viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg"></svg>'
+
+    max_points = max((len(values) for values in series.values()), default=0)
+    if max_points == 0:
+        return f'<svg viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg"></svg>'
+
+    left = 46
+    right = 120
+    top = 18
+    bottom = 34
+    chart_width = width - left - right
+    chart_height = height - top - bottom
+    all_values = [value for values in series.values() for value in values]
+    upper = max(2.05, max(all_values) * 1.08)
+    lower = 0.0
+
+    def x_at(index: int, count: int) -> float:
+        if count <= 1:
+            return left
+        return left + (index / (count - 1)) * chart_width
+
+    def y_at(value: float) -> float:
+        return top + chart_height - ((value - lower) / (upper - lower)) * chart_height
+
+    parts: list[str] = [
+        f'<svg viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg">',
+        f'<rect width="{width}" height="{height}" fill="#fafaf7" rx="6"/>',
+        f'<line x1="{left}" y1="{top + chart_height}" x2="{left + chart_width}" y2="{top + chart_height}" stroke="#8a8f98" stroke-width="0.7"/>',
+        f'<line x1="{left}" y1="{top}" x2="{left}" y2="{top + chart_height}" stroke="#8a8f98" stroke-width="0.7"/>',
+    ]
+
+    tick_values = _nice_ticks(upper)
+    for value in tick_values:
+        y = y_at(value)
+        parts.extend(
+            [
+                f'<line x1="{left}" y1="{y:.2f}" x2="{left + chart_width}" y2="{y:.2f}" stroke="#d7d0c2" stroke-width="0.55" stroke-dasharray="3 4"/>',
+                f'<text x="{left - 8}" y="{y + 3.5:.2f}" text-anchor="end" font-size="10" font-family="Georgia,serif" fill="#6b7280">{value:g}</text>',
+            ]
+        )
+
+    for bound, bound_color in {"2": "#1d4ed8", "2.62": "#b45309", "9": "#dc2626"}.items():
+        bound_value = float(bound)
+        if bound_value <= upper:
+            y = y_at(bound_value)
+            parts.extend(
+                [
+                    f'<line x1="{left}" y1="{y:.2f}" x2="{left + chart_width}" y2="{y:.2f}" stroke="{bound_color}" stroke-width="0.75" stroke-dasharray="4 4" opacity="0.65"/>',
+                    f'<text x="{left + chart_width + 8}" y="{y + 3.5:.2f}" font-size="10" font-family="Georgia,serif" fill="{bound_color}">bound {html.escape(bound)}</text>',
+                ]
+            )
+
+    for key, values in series.items():
+        if not values:
+            continue
+        color = html.escape(colors[key])
+        points = " ".join(
+            f"{x_at(index, len(values)):.2f},{y_at(value):.2f}"
+            for index, value in enumerate(values)
+        )
+        last_x = x_at(len(values) - 1, len(values))
+        last_y = y_at(values[-1])
+        parts.extend(
+            [
+                f'<polyline points="{points}" fill="none" stroke="{color}" stroke-width="2.0" stroke-linejoin="round"/>',
+                f'<circle cx="{last_x:.2f}" cy="{last_y:.2f}" r="2.7" fill="{color}"/>',
+                f'<text x="{last_x + 8:.2f}" y="{last_y + 3.5:.2f}" font-size="10.5" font-family="Georgia,serif" fill="{color}">{html.escape(labels[key])}</text>',
+            ]
+        )
+
+    parts.extend(
+        [
+            f'<text x="{left + chart_width / 2:.2f}" y="{height - 8}" text-anchor="middle" font-size="10" font-family="Georgia,serif" fill="#6b7280">day</text>',
+            f'<text x="14" y="{top + chart_height / 2:.2f}" text-anchor="middle" font-size="10" font-family="Georgia,serif" fill="#6b7280" transform="rotate(-90 14 {top + chart_height / 2:.2f})">cumulative makespan M(d)</text>',
+            "</svg>",
+        ]
+    )
+    return "\n".join(parts)
+
+
+def _nice_ticks(upper: float) -> list[float]:
+    if upper <= 2.5:
+        return [0.5, 1.0, 1.5, 2.0]
+    if upper <= 4:
+        return [1.0, 2.0, 3.0]
+    if upper <= 6:
+        return [1.0, 2.0, 3.0, 4.0, 5.0]
+    return [2.0, 4.0, 6.0, 8.0]

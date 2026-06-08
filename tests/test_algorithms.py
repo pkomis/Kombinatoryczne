@@ -33,16 +33,22 @@ class AlgorithmTests(unittest.TestCase):
             [0, 1, 0, 2, 0, 1, 0, 3],
         )
 
-    def test_makespan_two_rounds_rates_down_to_dyadic_values(self) -> None:
+    def test_makespan_two_completes_rates_to_dyadic_values_summing_to_one(self) -> None:
         oracle = MakespanTwoOracle([0.7, 0.2, 0.1])
 
         self.assertEqual(
             [slot.rounded_growth for slot in oracle.slots],
-            [0.5, 0.125, 0.0625],
+            [0.5, 0.25, 0.25],
         )
+        self.assertAlmostEqual(sum(slot.rounded_growth for slot in oracle.slots), 1.0)
         for slot in oracle.slots:
-            self.assertLessEqual(slot.rounded_growth, slot.normalized_growth)
             self.assertLess(slot.normalized_growth, 2 * slot.rounded_growth)
+
+    def test_makespan_two_builds_virtual_tree_for_non_regular_instances(self) -> None:
+        oracle = MakespanTwoOracle([0.4, 0.2, 0.15, 0.15, 0.1])
+
+        self.assertGreater(oracle.tree_height, 1)
+        self.assertGreater(oracle.node_count, len(oracle.slots))
 
     def test_makespan_two_respects_each_guaranteed_period(self) -> None:
         oracle = MakespanTwoOracle([0.4, 0.2, 0.15, 0.15, 0.1])

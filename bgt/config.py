@@ -18,7 +18,7 @@ ALGO_META = {
         "bound": "2.62",
     },
     "makespan_two": {
-        "label": "Makespan-2 schedule",
+        "label": "Makespan-2 oracle",
         "color": "#1d4ed8",
         "bound": "2",
     },

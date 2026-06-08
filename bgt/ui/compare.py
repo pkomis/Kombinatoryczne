@@ -9,16 +9,25 @@ import streamlit as st
 from bgt.algorithms import MakespanTwoOracle, oracle_reduce_fastest, oracle_reduce_max
 from bgt.config import ALGO_META
 from bgt.core import advance_day, create_bamboos, makespan
+from bgt.experiments import (
+    cut_trace,
+    experiment_rows,
+    experiment_to_csv,
+    makespan_two_schedule_rows,
+    run_comparison_experiment,
+)
 from bgt.ui.components import panel_title, preset_buttons, rate_editor, render_svg
-from bgt.visuals import bamboo_garden_svg, sparkline_svg
+from bgt.visuals import bamboo_garden_svg, comparison_chart_svg, sparkline_svg
 
 
 def init_compare_state() -> None:
     if "compare_rates" not in st.session_state:
         reset_compare([0.5, 0.25, 0.15, 0.1])
     st.session_state.setdefault("compare_speed", 500)
+    st.session_state.setdefault("compare_experiment_days", 250)
     if "compare_makespan_two_oracle" not in st.session_state:
         st.session_state.compare_makespan_two_oracle = MakespanTwoOracle(st.session_state.compare_rates)
+    st.session_state.setdefault("compare_experiment", None)
 
 
 def reset_compare(rates: list[float] | None = None) -> None:
@@ -36,6 +45,7 @@ def reset_compare(rates: list[float] | None = None) -> None:
     st.session_state.compare_day = 0
     st.session_state.compare_running = False
     st.session_state.compare_makespan_two_oracle = MakespanTwoOracle(rates)
+    st.session_state.compare_experiment = None
 
 
 def compare_tick() -> None:
@@ -96,6 +106,21 @@ def compare_mode() -> None:
                 )
                 st.caption(f"bound <= {meta['bound']}")
 
+        with st.container(border=True):
+            panel_title("Experiment")
+            st.number_input(
+                "Days",
+                min_value=10,
+                max_value=10000,
+                step=10,
+                key="compare_experiment_days",
+            )
+            if st.button("Run comparison", key="compare_experiment_run", width="stretch"):
+                st.session_state.compare_experiment = run_comparison_experiment(
+                    st.session_state.compare_rates,
+                    int(st.session_state.compare_experiment_days),
+                )
+
     with main:
         control_cols = st.columns([1, 1, 1, 2])
         with control_cols[0]:
@@ -148,7 +173,68 @@ def compare_mode() -> None:
                     st.caption(f"bound <= {meta['bound']}")
                     render_svg(sparkline_svg(state["history"], meta["color"], height=110))
 
+        render_experiment_panel()
+
     if st.session_state.compare_running:
         time.sleep(st.session_state.compare_speed / 1000)
         compare_tick()
         st.rerun()
+
+
+def render_experiment_panel() -> None:
+    experiment = st.session_state.get("compare_experiment")
+    if experiment is None:
+        with st.container(border=True):
+            panel_title("Experiment output")
+            st.caption("Run a comparison to generate a chart, metrics table, cut traces, and downloadable CSV/SVG output.")
+        return
+
+    labels = {key: meta["label"] for key, meta in ALGO_META.items()}
+    colors = {key: meta["color"] for key, meta in ALGO_META.items()}
+    chart_svg = comparison_chart_svg(
+        {key: run.makespans for key, run in experiment.runs.items()},
+        labels,
+        colors,
+    )
+
+    with st.container(border=True):
+        panel_title(f"Experiment output - {experiment.days} days")
+        render_svg(chart_svg)
+
+        metric_cols = st.columns(len(experiment.runs))
+        for column, key in zip(metric_cols, ALGO_META):
+            run = experiment.runs[key]
+            column.metric(ALGO_META[key]["label"], f"{run.final_makespan:.3f}")
+
+        table_col, export_col = st.columns([0.68, 0.32], gap="large")
+        with table_col:
+            st.table(experiment_rows(experiment))
+        with export_col:
+            st.download_button(
+                "Download CSV",
+                data=experiment_to_csv(experiment),
+                file_name="bgt-comparison.csv",
+                mime="text/csv",
+                key="compare_download_csv",
+                width="stretch",
+            )
+            st.download_button(
+                "Download SVG",
+                data=chart_svg,
+                file_name="bgt-comparison.svg",
+                mime="image/svg+xml",
+                key="compare_download_svg",
+                width="stretch",
+            )
+
+        with st.expander("Cut trace"):
+            for key, run in experiment.runs.items():
+                st.markdown(f"**{ALGO_META[key]['label']}**")
+                st.code(cut_trace(run), language="text")
+
+        with st.expander("Makespan-2 dyadic schedule"):
+            st.caption(
+                "Rounded and completed dyadic rates define a virtual bamboo tree; "
+                "routes show the path from the root to each real bamboo."
+            )
+            st.table(makespan_two_schedule_rows(experiment.rates))
