@@ -201,7 +201,7 @@ statycznym a~adwersarialnym.
 
 \subsection{Znaczenie praktyczne}
 
-Choć historia z~panda-ogrodnikiem jest celowo lekka, model BGT opisuje
+Choć historia z~pandą-ogrodnikiem jest celowo lekka, model BGT opisuje
 realny typ problemów: ograniczony zasób obsługi musi cyklicznie reagować
 na obiekty narastające z~różnymi szybkościami. Problem BGT i~jego
 uogólnienia pojawiają się między innymi w~następujących zastosowaniach:
@@ -636,9 +636,19 @@ czytelna logika symulacji, szybkie eksperymentowanie z~parametrami oraz
 proste uruchomienie aplikacji bez osobnego frontendu i~backendu.
 
 Aplikacja nie korzysta z~zewnętrznych bibliotek obliczeniowych. Strategie
-\RM{}, \RF$(x)$ oraz wariant oracle są zaimplementowane bezpośrednio
+\RM{}, \RF$(x)$ oraz harmonogram z~gwarancją makespanu~$2$ są zaimplementowane bezpośrednio
 w~kodzie projektu, a~wizualizacje ogrodu i~wykresów generowane są jako
 wektorowe rysunki SVG po stronie Pythona.
+
+Implementacja harmonogramu Makespan-2 stosuje redukcję z~\cite{bilo2022}:
+normalizuje współczynniki wzrostu i~zaokrągla każdy z~nich w~dół do
+najbliższej potęgi~$1/2$. Bezkolizyjne okresowe terminy cięć są następnie
+reprezentowane przez drzewo prefiksowe. Niewykorzystane terminy mogą zostać
+przeznaczone na dodatkowe cięcie według \RM{}, co nie pogarsza gwarancji.
+Jest to prostsza realizacja harmonogramu dyadycznego odpowiednia dla małych
+instancji wizualizowanych w~aplikacji; nie implementuje zoptymalizowanego
+drzewa wirtualnych bambusów używanego w~\cite{bilo2022} do uzyskania
+czasu zapytania $O(\log n)$.
 
 \subsection{Architektura}
 
@@ -679,7 +689,7 @@ Najważniejsze elementy kodu:
   \item \texttt{advance\_day()} – wspólna funkcja wykonująca jeden dzień
         symulacji dla dowolnej strategii;
   \item \texttt{oracle\_reduce\_max()}, \texttt{oracle\_reduce\_fastest()}
-        oraz \texttt{oracle\_optimal()} – implementacje reguł wyboru cięcia;
+        oraz \texttt{MakespanTwoOracle} – implementacje reguł i harmonogramu cięć;
   \item \texttt{bamboo\_garden\_svg()} i~\texttt{sparkline\_svg()} –
         generatory wizualizacji w~SVG.
 \end{itemize}
@@ -691,7 +701,7 @@ Aplikacja oferuje trzy tryby:
 \begin{enumerate}[noitemsep]
   \item \textbf{Sandbox} – użytkownik konfiguruje ogród (liczba bambusów,
         współczynniki wzrostu), wybiera algorytm spośród \RM{}, \RF$(x)$
-        (z~regulowanym progiem $x$) i~optymalnego Oracle, obserwuje
+        (z~regulowanym progiem $x$) i~harmonogramu Makespan-2, obserwuje
         animowaną symulację dzień po dniu.
 
   \item \textbf{Porównanie} – wszystkie trzy algorytmy działają
@@ -836,7 +846,7 @@ Główne wyniki artykułu Bilò i~wsp.~\cite{bilo2022} to:
 Zaimplementowana przez nas aplikacja webowa pozwala na interaktywne
 badanie powyższych strategii i~wizualną weryfikację ich zachowania
 na wybranych instancjach. Tryb porównania pokazuje, że różnice między
-\RM{}, \RF$(x)$ i~oracle nie są jedynie abstrakcyjne: dla tych samych
+\RM{}, \RF$(x)$ i~harmonogram Makespan-2 nie są jedynie abstrakcyjne: dla tych samych
 współczynników wzrostu algorytmy mogą generować inną historię makespanu
 i~inne decyzje cięcia. Projekt stanowi więc praktyczne uzupełnienie analizy
 teoretycznej: pozwala zobaczyć, jak twierdzenia przekładają się na dynamikę
